@@ -1,0 +1,42 @@
+name: CI Workflow
+
+# Trigger the workflow on push to the main branch or on pull requests targeting the main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Running in a Python 3.9 container
+    container:
+      image: python:3.9-slim
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Step 2: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 3: Lint with flake8
+      - name: Lint with flake8
+        run: |
+          flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+
+      # Step 4: Run unit tests with nose
+      - name: Run unit tests with nose
+        run: |
+          pip install nose
+          nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
+
